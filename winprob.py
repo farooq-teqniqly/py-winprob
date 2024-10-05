@@ -25,18 +25,17 @@ def get_normalized_wp(raw_wp_vals: List[int], interpolation: dict) -> List[int]:
                     break
 
         normalized_val = interpolation[v]
-        normalized_vals.append(normalized_val)
+        normalized_vals.append(int(normalized_val))
 
     return normalized_vals
 
 if __name__ == "__main__":
-    # url = "https://www.baseball-reference.com/boxes/MIL/MIL202410030.shtml"
-    # response_text = iops.download(url)
-    # iops.save(response_text, Path("python.html"))
-    content = iops.load(Path("page_content.html"))
+    content = iops.load(Path("PIT196010130.html"))
     raw_wp_vals = pops.parse_raw_wp_vals(content)
     interpolation = get_interpolation()
     normalized_wp_vals = get_normalized_wp(raw_wp_vals, interpolation)
 
-    for v in normalized_wp_vals:
-        print(v)
+    teams = pops.parse_teams(content)
+    wp_vals = dict(home_team_wp=normalized_wp_vals)
+    results_dict = {**teams, **wp_vals}
+    print(results_dict)

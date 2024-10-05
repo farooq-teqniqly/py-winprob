@@ -10,7 +10,7 @@ service = Service(ChromeDriverManager().install())
 driver = webdriver.Chrome(service=service)
 
 try:
-    driver.get('https://www.baseball-reference.com/boxes/MIL/MIL202410030.shtml')  # Replace with the actual UR
+    driver.get('https://www.baseball-reference.com/boxes/PIT/PIT196010130.shtml')  # Replace with the actual UR
     last_height = driver.execute_script("return document.body.scrollHeight")
 
     while True:
@@ -25,7 +25,7 @@ try:
 
     html_content = driver.page_source
 
-    with open('page_content.html', 'w', encoding='utf-8') as file:
+    with open('PIT196010130.html', 'w', encoding='utf-8') as file:
         file.write(html_content)
 
     print("Page HTML has been saved successfully.")

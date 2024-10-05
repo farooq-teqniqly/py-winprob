@@ -1,6 +1,20 @@
 from bs4 import BeautifulSoup
-from typing import List
+from typing import List, Dict
 import numpy as np
+
+def parse_teams(content: str) -> Dict[str, str]:
+    soup = BeautifulSoup(content, "html.parser")
+    scorebox_div = soup.find("div", class_="scorebox")
+
+    strong_elements = scorebox_div.find_all("strong")
+
+    teams = []
+
+    for strong in strong_elements[:2]:
+        a_tag = strong.find("a")
+        teams.append(a_tag.get_text())
+
+    return dict(zip(["away_team", "home_team"], teams))
 
 def parse_raw_wp_vals(content: str) -> List[int]:
     soup = BeautifulSoup(content, "html.parser")
