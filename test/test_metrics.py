@@ -8,29 +8,21 @@ data = [50, 52, 54, 55, 53, 51, 52, 71, 71, 73, 75, 75, 78, 82, 86, 76, 88, 87, 
 def _assert_approx(want: float, got: float, tolerance=1e-2):
     assert got == pytest.approx(want, abs=tolerance)
 
-def test_std_dev():
-    _assert_approx(27.20, m._std_dev(data))
+def test_volatility_metrics_are_correctly_calculated():
+    metrics = m.calculate_volatility_metrics(data)
 
-def test_mad():
-    _assert_approx(24.74, m._mad(data))
+    want = dict(
+        std_dev=27.20,
+        mean_abs_dev=24.74,
+        range=94,
+        var=739.91,
+        cv=0.44,
+        rolling_std_dev=7.06,
+        iqr=53,
+        rmse=27.20,
+        mean_abs_returns=5.79,
+    )
 
-def test_range():
-    assert m._range(data) == 94
-
-def test_var():
-    _assert_approx(739.91, m._var(data))
-
-def test_cv():
-    _assert_approx(0.44, m._cv(data))
-
-def test_rolling_std_dev():
-    _assert_approx(7.06, m._rolling_std_dev(data))
-
-def test_iqr():
-    _assert_approx(53, m._iqr(data))
-
-def test_rmse():
-    _assert_approx(27.20, m._rmse(data))
-
-def test_mean_absolute_returns():
-    _assert_approx(5.79, m._mar(data))
+    for k, v in want.items():
+        assert k in metrics
+        _assert_approx(v, metrics[k])
