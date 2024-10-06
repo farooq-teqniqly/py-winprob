@@ -14,6 +14,7 @@ def calculate_volatility_metrics(data: List[int]) -> dict:
         iqr=_iqr(data),
         rmse=_rmse(data),
         mean_abs_returns=_mar(data),
+        squared_returns=_squared_returns(data)
     )
 
 def _mean(data: Union[List[int], np.ndarray[Any, np.dtype]]) -> float:

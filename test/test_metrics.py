@@ -21,6 +21,7 @@ def test_volatility_metrics_are_correctly_calculated():
         iqr=53,
         rmse=27.20,
         mean_abs_returns=5.79,
+        squared_returns=-.0051
     )
 
     for k, v in want.items():
