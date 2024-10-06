@@ -162,3 +162,5 @@ cython_debug/
 .idea/
 Scripts/
 pyvenv.cfg
+
+test/boxscores/**/*.shtml
