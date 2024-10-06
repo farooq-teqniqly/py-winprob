@@ -8,6 +8,8 @@ import time
 from bs4 import BeautifulSoup
 from pathlib import Path
 import json
+from typing import List
+import os
 
 ROOT_URL = "https://www.baseball-reference.com"
 service = Service(ChromeDriverManager().install())
@@ -47,3 +49,14 @@ def download_boxscore_links(year:int) -> str:
         return boxscore_links_json
     finally:
         driver.quit()
+
+def download_box_scores(links: List[str], output_dir: Path, delay_between_downloads_seconds=2):
+    for link in links:
+        soup = _get_soup_for_page(link)
+        filename = os.path.join(output_dir, f"{link.split('/')[-1]}")
+
+        with open(filename, "w", encoding="utf-8") as file:
+            file.write(str(soup.prettify()))
+
+        print(f"Saved boxscore to {filename}")
+        time.sleep(delay_between_downloads_seconds)
