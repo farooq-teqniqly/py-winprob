@@ -4,6 +4,25 @@ from typing import List, Any, Union
 import numpy as np
 
 def calculate_volatility_metrics(data: List[int]) -> dict:
+    """
+    Calculates various volatility metrics for the provided data.
+
+    Args:
+        data: A list of integers representing the dataset for which volatility metrics are computed.
+
+    Returns:
+        A dictionary containing the calculated volatility metrics:
+            - std_dev: Standard deviation of the data.
+            - mean_abs_dev: Mean absolute deviation of the data.
+            - range: Range of the data.
+            - var: Variance of the data.
+            - cv: Coefficient of variation of the data.
+            - rolling_std_dev: Rolling standard deviation of the data.
+            - iqr: Interquartile range of the data.
+            - rmse: Root mean square error of the data.
+            - mean_abs_returns: Mean absolute returns of the data.
+            - squared_returns: Squared returns of the data.
+    """
     return dict(
         std_dev=_std_dev(data),
         mean_abs_dev=_mad(data),
