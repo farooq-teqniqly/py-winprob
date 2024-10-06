@@ -1,5 +1,7 @@
-import requests
 from pathlib import Path
+
+import requests
+
 
 def download(url: str) -> str:
     response = requests.get(url)
@@ -9,9 +11,11 @@ def download(url: str) -> str:
 
     response.raise_for_status()
 
+
 def save(response_text: str, target_file_path: Path) -> None:
     with open(target_file_path, "w", encoding="utf-8") as file:
         file.write(response_text)
+
 
 def load(source_file_path: Path) -> str:
     with open(source_file_path, "r", encoding="utf-8") as file:
