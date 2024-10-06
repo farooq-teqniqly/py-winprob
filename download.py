@@ -52,8 +52,12 @@ def download_boxscore_links(year:int) -> str:
 
 def download_box_scores(links: List[str], output_dir: Path, delay_between_downloads_seconds=2):
     for link in links:
-        soup = _get_soup_for_page(link)
         filename = os.path.join(output_dir, f"{link.split('/')[-1]}")
+
+        if os.path.exists(filename):
+            continue
+
+        soup = _get_soup_for_page(link)
 
         with open(filename, "w", encoding="utf-8") as file:
             file.write(str(soup.prettify()))
