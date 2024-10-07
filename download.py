@@ -63,28 +63,17 @@ def download_box_scores(links: List[str], output_dir: Path, delay_between_downlo
         print(f"Saved boxscore to {filename}")
         time.sleep(delay_between_downloads_seconds)
 
-
-def _scroll_to_bottom(sleep_time_sec=2):
-    last_height = driver.execute_script("return document.body.scrollHeight")
-
-    while True:
-        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-        time.sleep(sleep_time_sec)
-        new_height = driver.execute_script("return document.body.scrollHeight")
-
-        if new_height == last_height:
-            break
-
-        last_height = new_height
-
-
-def _get_soup_for_page(url: str) -> BeautifulSoup:
-    driver.get(url)
-    _scroll_to_bottom()
-    return BeautifulSoup(driver.page_source, "html.parser")
-
-
 def main():
+    """
+    Command-line interface (CLI) tool for downloading links and boxscores.
+
+    Parses command-line arguments and executes the corresponding functionality:
+    - Downloads boxscore links for a given year.
+    - Downloads boxscores from a provided links file.
+
+    Functions:
+        main(): Parses arguments and executes the appropriate command.
+    """
     parser = argparse.ArgumentParser(description="CLI tool for downloading links and boxes.")
 
     subparsers = parser.add_subparsers(dest="command", required=True, help="Commands")
@@ -135,6 +124,24 @@ def _write_boxscores_to_target(args, boxscore_links_json):
 
     print("Boxscore links has been saved successfully.")
 
+def _scroll_to_bottom(sleep_time_sec=2):
+    last_height = driver.execute_script("return document.body.scrollHeight")
+
+    while True:
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        time.sleep(sleep_time_sec)
+        new_height = driver.execute_script("return document.body.scrollHeight")
+
+        if new_height == last_height:
+            break
+
+        last_height = new_height
+
+
+def _get_soup_for_page(url: str) -> BeautifulSoup:
+    driver.get(url)
+    _scroll_to_bottom()
+    return BeautifulSoup(driver.page_source, "html.parser")
 
 if __name__ == "__main__":
     main()
