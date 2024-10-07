@@ -1,6 +1,8 @@
 import argparse
+import contextlib
 import json
 import os
+import sys
 import time
 from pathlib import Path
 from typing import List
@@ -8,12 +10,18 @@ from tqdm import tqdm
 
 from bs4 import BeautifulSoup
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
+from tqdm.contrib import DummyTqdmFile
 from webdriver_manager.chrome import ChromeDriverManager
 
 ROOT_URL = "https://www.baseball-reference.com"
 service = Service(ChromeDriverManager().install())
-driver = webdriver.Chrome(service=service)
+
+options = Options()
+options.add_argument("--log-level=3")
+
+driver = webdriver.Chrome(service=service, options=options)
 
 
 def download_boxscore_links(year: int) -> str:
@@ -30,9 +38,10 @@ def download_boxscore_links(year: int) -> str:
 
         boxscore_links = []
 
-        for a_tag in tqdm(a_tags):
-            if a_tag.get_text() == "Boxscore":
-                boxscore_links.append(f"{ROOT_URL}{a_tag["href"]}")
+        with _std_out_err_redirect_tqdm() as orig_stdout:
+            for a_tag in tqdm(a_tags, file=orig_stdout, dynamic_ncols=True):
+                if a_tag.get_text() == "Boxscore":
+                    boxscore_links.append(f"{ROOT_URL}{a_tag["href"]}")
 
         boxscore_links_json = json.dumps(boxscore_links)
 
@@ -48,20 +57,23 @@ def download_box_scores(links: List[str], output_dir: Path, delay_between_downlo
         output_dir: Directory where the downloaded box scores will be saved.
         delay_between_downloads_seconds: Number of seconds to wait between downloads.
     """
-    for link in tqdm(links):
+
+    link_to_file_mapping = []
+
+    for link in links:
         filename = os.path.join(output_dir, f"{link.split('/')[-1]}")
+        if not os.path.exists(filename):
+            link_to_file_mapping.append((link, filename))
 
-        if os.path.exists(filename):
-            print(f"Skipping {filename}")
-            continue
+    with _std_out_err_redirect_tqdm() as orig_stdout:
+        for link, filename in tqdm(link_to_file_mapping, file=orig_stdout, dynamic_ncols=True):
+            soup = _get_soup_for_page(link)
 
-        soup = _get_soup_for_page(link)
+            with open(filename, "w", encoding="utf-8") as file:
+                file.write(str(soup.prettify()))
 
-        with open(filename, "w", encoding="utf-8") as file:
-            file.write(str(soup.prettify()))
-
-        print(f"Saved boxscore to {filename}")
-        time.sleep(delay_between_downloads_seconds)
+            print(f"Saved boxscore to {filename}")
+            time.sleep(delay_between_downloads_seconds)
 
 def main():
     """
@@ -119,10 +131,12 @@ def _write_boxscores_to_target(args, boxscore_links_json):
     if not os.path.exists(args.target_dir):
         os.makedirs(args.target_dir)
 
-    with open(os.path.join(args.target_dir, f"boxscore_links_{args.year}.json"), "w", encoding="utf-8") as file:
+    target_file_path = os.path.join(args.target_dir, f"boxscore_links_{args.year}.json")
+
+    with open(target_file_path, "w", encoding="utf-8") as file:
         file.write(boxscore_links_json)
 
-    print("Boxscore links has been saved successfully.")
+    print(f"Boxscore links saved to {target_file_path}")
 
 def _scroll_to_bottom(sleep_time_sec=2):
     last_height = driver.execute_script("return document.body.scrollHeight")
@@ -142,6 +156,17 @@ def _get_soup_for_page(url: str) -> BeautifulSoup:
     driver.get(url)
     _scroll_to_bottom()
     return BeautifulSoup(driver.page_source, "html.parser")
+
+@contextlib.contextmanager
+def _std_out_err_redirect_tqdm():
+    orig_out_err = sys.stdout, sys.stderr
+    try:
+        sys.stdout, sys.stderr = map(DummyTqdmFile, orig_out_err)
+        yield orig_out_err[0]
+    except Exception as ex:
+        raise ex
+    finally:
+        sys.stdout, sys.stderr = orig_out_err
 
 if __name__ == "__main__":
     main()
