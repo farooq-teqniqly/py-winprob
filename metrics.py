@@ -37,7 +37,7 @@ def calculate_volatility_metrics(data: List[int]) -> dict:
     )
 
 
-def _mean(data: Union[List[int], np.ndarray[Any, np.dtype]]) -> float:
+def _mean(data: np.ndarray[Any, np.dtype]) -> float:
     return float(np.mean(data))
 
 
