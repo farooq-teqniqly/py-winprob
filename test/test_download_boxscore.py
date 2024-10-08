@@ -1,26 +1,42 @@
 import json
-import os.path
-
-from download import download_boxscore_links, download_box_scores
-
-year = 2023
-filename = f"boxscore_links_{year}.json"
-
-def test_can_download_and_save_boxscore_links():
-    boxscore_links_json = download_boxscore_links(year)
-
-    with open(filename, "w", encoding="utf-8") as file:
-        file.write(boxscore_links_json)
-
-    print("Boxscore links has been saved successfully.")
+import pytest
+from unittest.mock import patch, MagicMock
+from bs4 import BeautifulSoup
+from download import download_boxscore_links
 
 
-def test_can_download_boxscores():
-    with open(filename, "r", encoding="utf-8") as file:
-        links = json.load(file)
-        output_dir = os.path.join(os.getcwd(), "boxscores", str(year))
+@pytest.fixture
+def mock_driver():
+    with patch("download.webdriver.Chrome") as mock_driver:
+        yield mock_driver
 
-        if not os.path.exists(output_dir):
-            os.mkdir(output_dir)
 
-        download_box_scores(links, output_dir)
+@pytest.fixture
+def mock_soup():
+    with patch("download.BeautifulSoup") as mock_soup:
+        yield mock_soup
+
+
+def test_download_boxscore_links(mock_driver, mock_soup):
+    year = 2022
+    mock_driver_instance = mock_driver.return_value
+    mock_driver_instance.page_source = ("<html>"
+                                        "<a href='/boxscore/123'>Boxscore</a>"
+                                        "<a href='/boxscore/456'>Boxscore</a>"
+                                        "</html>")
+
+    mock_soup_object = BeautifulSoup(mock_driver_instance.page_source, "html.parser")
+    mock_soup.return_value = mock_soup_object
+
+    with patch("download._get_soup_for_page", return_value=mock_soup_object):
+        result = download_boxscore_links(year)
+
+    expected_links = json.dumps([
+        "https://www.baseball-reference.com/boxscore/123",
+    "https://www.baseball-reference.com/boxscore/456"])
+
+    assert result == expected_links
+
+
+if __name__ == "__main__":
+    pytest.main()
